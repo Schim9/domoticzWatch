@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<widget xmlns:tizen="http://tizen.org/ns/widgets" xmlns="http://www.w3.org/ns/widgets" id="http://yourdomain/DomoticzWidget" version="1.0.0">
+    <tizen:app-widget id="Uoi8qIm9z5.DomoticzWidget.DomoticzWidget" primary="true">
+        <tizen:widget-label>Hello Web Widget!</tizen:widget-label>
+        <tizen:widget-content src="widget/DomoticzWidget/index.html">
+            <tizen:widget-size preview="widget/DomoticzWidget/preview.png">2x2</tizen:widget-size>
+        </tizen:widget-content>
+    </tizen:app-widget>
+    <tizen:application id="Uoi8qIm9z5.DomoticzWidget" package="Uoi8qIm9z5" required_version="7.0"/>
+    <content src="index.html"/>
+    <feature name="http://tizen.org/feature/screen.size.normal"/>
+    <icon src="icon.png"/>
+    <name>DomoticzWidget</name>
+    <tizen:profile name="wearable"/>
+</widget>
