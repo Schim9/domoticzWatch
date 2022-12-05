@@ -1,46 +1,45 @@
 window.onload = function() {
-  console.log('+[window.onload]');
-  handleClickRefresh();
+	console.log("ERK - widget loaded 18:15");
+  	handleClickRefresh();
 };
 
+function handleClickRefresh(){
+	console.log("ERK - handleClickRefresh");
+	const commandParam = "&type=devices";
+	callApi(commandParam, updateDevicesStatus);
+}
+
 function handleClickLight(){
-	console.log("Handle light action");
 	const idxSpot = Device.spot;
 	const commandParam = "&type=command&param=switchlight&idx="+idxSpot+"&switchcmd=Toggle";
 	callApi(commandParam, fetchStatusAfterAction);
 }
 
-function handleClickDoor(){
-	console.log("Handle door action");
-	const idxPorteCave = Device.porte_cave;
-	const commandParam = "&type=command&param=switchlight&idx="+idxPorteCave+"&switchcmd=On";
-	callApi(commandParam);
-}
-
 function handleClickGarage(){
-	console.log("Handle garage action");
 	const idxPorteGarage = Device.porte_garage;
 	const commandParam = "&type=command&param=switchlight&idx="+idxPorteGarage+"&switchcmd=On";
 	callApi(commandParam, fetchStatusAfterAction)
 }
 
-function handleClickRefresh(){
-	const commandParam = "&type=devices";
-	callApi(commandParam, updateDevicesStatus);
+function handleClickDoor(){
+	const idxPorteCave = Device.porte_cave;
+	const commandParam = "&type=command&param=switchlight&idx="+idxPorteCave+"&switchcmd=On";
+	callApi(commandParam);
 }
 
 function fetchStatusAfterAction() {
+	console.log("ERK - fetchStatusAfterAction");
 	setTimeout(function() {
+		console.log("ERK - fetchStatusAfterAction - action triggered");
 		handleClickRefresh();
 	}, 3000);
 }
 
-
 function updateDevicesStatus(devices) {
-	const relevantDevices = [Device.spot, Device.etat_porte_garage];
+	const devicesThatHaveStatus = [Device.spot, Device.etat_porte_garage];
 	devices.forEach(function(device) {
-		if (relevantDevices.includes(device.idx)) {
-			console.log("status of "+device.idx+" is", device.Status);	
+		if (devicesThatHaveStatus.includes(device.idx)) {
+			// In case of any error, door icon has been cleared
 			document.getElementById("door").src="assets/door_closed.png";
 			switch (device.idx) {
 			  case Device.spot:
@@ -65,38 +64,63 @@ function updateDevicesStatus(devices) {
 }
 
 function callApi(commandParam, callBack) {
-	const domoticz_host = Config.domoticz_host;
-	const domoticz_usr = Config.domoticz_usr;
-	const domoticz_pwd = Config.domoticz_pwd;
-	const httpClient = new XMLHttpRequest();
-	const url = domoticz_host + "/json.htm?username=" + domoticz_usr + "&password=" + domoticz_pwd + commandParam;
-	httpClient.open("GET", url);
+
+	console.log("ERK - callAPI");
+	const domoticz_host = Param.domoticz_host;
+	const domoticz_usr = Param.domoticz_usr;
+	const domoticz_pwd = Param.domoticz_pwd;
+	const urlDomoticzQuery = domoticz_host + "/json.htm?username=" + domoticz_usr + "&password=" + domoticz_pwd + commandParam;
+
+	// const urlDev = "https://httpbin.org/ip";
+	// const urlDev = "http://httpbin.org/anything";
+	// const urlDev = "https://smoothiz-back.xpertiz.lu/api/conf/app-info";
+	// const urlDev = 'https://domotique.kaminski.lu/json.htm?type=command&param=getversion';
+	// const urlDev = 'http://192.168.0.97:8084/json.htm?type=command&param=getversion';
+	const urlDev = "http://192.168.0.97:8084/json.htm?username=" + domoticz_usr + "&password=" + domoticz_pwd + commandParam;
+	console.log("ERK - urlDev (" + urlDev + ")");
+
+	var httpClient = new XMLHttpRequest();
+	httpClient.open("GET", urlDev);
+	httpClient.send();
+
+	httpClient.onload = function() {
+		console.log("ERK onLoad");
+		console.log("ERK onLoad - status: " + httpClient.status);
+		console.log("ERK onLoad - response: " + httpClient.response);
+		console.log("ERK onLoad - responseText: " + httpClient.responseText);
+	};
+
+
 	httpClient.onreadystatechange = function () {
+		console.log("ERK onreadystatechange");
+		console.log("ERK onreadystatechange - readyState == (" + JSON.stringify(this.readyState) + ")");
+		console.log("ERK onreadystatechange - status == " + this.status + ".");
+		console.log("ERK onreadystatechange - response? " + JSON.stringify(this) + ".");
 	    if (this.readyState === 4) {
+			console.log("ERK onreadystatechange - readyState is 4");
 	        if (this.status === 200) {
+				console.log("ERK onreadystatechange - status is 200");
 	        	navigator.vibrate(1000);
-	            console.log(JSON.parse(this.responseText).result);
+	            console.log(" onreadystatechange -" + JSON.parse(this.responseText).result);
 	            if (callBack) {
-	            	callBack(JSON.parse(this.responseText).result);
-	            } else {
-	            	console.log("no callback");
+	            	callBack(JSON.parse(httpClient.responseText).result);
 	            }
 	        } else {
+				console.log("ERK onreadystatechange - status is " + this.status);
 	        	handleError();
-	        	console.log("error", this); // handle error
+	        	console.log("ERK onreadystatechange - error", this); // handle error
 	        }
 	    }
 	};
-
-	httpClient.send();
+	console.log("ERK - SEND REQUEST");
 }
 
 function handleError(errorMessage) {
-	// navigator.vibrate([1000, 1000, 1000, 1000, 1000]);
+	 navigator.vibrate([1000, 1000, 1000, 1000, 1000]);
 	 document.getElementById("light").src="assets/error.png";
 	 document.getElementById("garage").src="";
 	 document.getElementById("door").src="";
-	// Send request to Pushbullet
+	// TODO: Send request to Pushbullet
 	// POST / https://api.pushbullet.com/v2/pushes
 	// post.addHeader("Access-Token", pushBulletProperties.getApiKey());
     // post.addHeader("Content-Type", "application/json");
