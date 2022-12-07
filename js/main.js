@@ -1,5 +1,5 @@
 window.onload = function() {
-	console.log("ERK - widget loaded 18:15");
+	console.log("ERK - widget loaded 19:12");
   	handleClickRefresh();
 };
 
@@ -27,8 +27,10 @@ function handleClickDoor(){
 	callApi(commandParam);
 }
 
-function fetchStatusAfterAction() {
+function fetchStatusAfterAction(result) {
 	console.log("ERK - fetchStatusAfterAction");
+	console.log("ERK - fetchStatusAfterAction. result ==" + JSON.stringify(result));
+
 	setTimeout(function() {
 		console.log("ERK - fetchStatusAfterAction - action triggered");
 		handleClickRefresh();
@@ -79,31 +81,28 @@ function callApi(commandParam, callBack) {
 	const urlDev = "http://192.168.0.97:8084/json.htm?username=" + domoticz_usr + "&password=" + domoticz_pwd + commandParam;
 	console.log("ERK - urlDev (" + urlDev + ")");
 
-	var httpClient = new XMLHttpRequest();
-	httpClient.open("GET", urlDev);
+	const httpClient = new XMLHttpRequest();
+	httpClient.open("GET", urlDomoticzQuery);
 	httpClient.send();
-
-	httpClient.onload = function() {
-		console.log("ERK onLoad");
-		console.log("ERK onLoad - status: " + httpClient.status);
-		console.log("ERK onLoad - response: " + httpClient.response);
-		console.log("ERK onLoad - responseText: " + httpClient.responseText);
-	};
 
 
 	httpClient.onreadystatechange = function () {
 		console.log("ERK onreadystatechange");
 		console.log("ERK onreadystatechange - readyState == (" + JSON.stringify(this.readyState) + ")");
 		console.log("ERK onreadystatechange - status == " + this.status + ".");
-		console.log("ERK onreadystatechange - response? " + JSON.stringify(this) + ".");
 	    if (this.readyState === 4) {
 			console.log("ERK onreadystatechange - readyState is 4");
 	        if (this.status === 200) {
 				console.log("ERK onreadystatechange - status is 200");
-	        	navigator.vibrate(1000);
-	            console.log(" onreadystatechange -" + JSON.parse(this.responseText).result);
+	        	// navigator.vibrate(1000);
+				console.log("ERK onreadystatechange - responseText== " + JSON.stringify(this.responseText) + ".");
+				const testParsed = JSON.parse(this.responseText);
+				console.log("ERK onreadystatechange - testParsed is read");
+				const results = testParsed.result;
+				console.log("ERK onreadystatechange - result is set");
+				console.log("ERK onreadystatechange - JSON.parse(this.responseText).result == " + JSON.parse(this.responseText).result);
 	            if (callBack) {
-	            	callBack(JSON.parse(httpClient.responseText).result);
+	            	callBack(results);
 	            }
 	        } else {
 				console.log("ERK onreadystatechange - status is " + this.status);
@@ -116,7 +115,7 @@ function callApi(commandParam, callBack) {
 }
 
 function handleError(errorMessage) {
-	 navigator.vibrate([1000, 1000, 1000, 1000, 1000]);
+	 // navigator.vibrate([1000, 1000, 1000, 1000, 1000]);
 	 document.getElementById("light").src="assets/error.png";
 	 document.getElementById("garage").src="";
 	 document.getElementById("door").src="";
